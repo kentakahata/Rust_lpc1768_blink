@@ -18,7 +18,7 @@ MEMORY
    section */
 /* This is required only on microcontrollers that store some configuration right
    after the vector table */
-/* _stext = ORIGIN(FLASH) + 0x400; */
+ //_stext = ORIGIN(FLASH) + 0x400; */
 
 /* Example of putting non-initialized variables into custom RAM locations. */
 /* This assumes you have defined a region RAM2 above, and in the Rust

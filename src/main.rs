@@ -1,6 +1,6 @@
 #![no_std]
 #![no_main]
-use core::ptr::write_volatile;
+
 
 // pick a panicking behavior
 use panic_halt as _; // you can put a breakpoint on `rust_begin_unwind` to catch panics
@@ -8,37 +8,28 @@ use panic_halt as _; // you can put a breakpoint on `rust_begin_unwind` to catch
 // use panic_itm as _; // logs messages over ITM; requires ITM support
 // use panic_semihosting as _; // logs messages to the host stderr; requires a debugger
 
-use cortex_m::asm::nop;
+/*
+    para compilar para hexa utilizar o "cargo build --release" e "cargo objcopy --release -- -O ihex firmware.hex"
+
+*/
+
+use cortex_m::asm;
 use cortex_m_rt::entry;
+use lpc1769:: Peripherals;
 
 #[entry]
 fn main() -> ! {
+    
+    let p = Peripherals::take().unwrap();
 
-    const GPIO3_OUT: *mut u32 = 0x2009_C063 as *mut u32;
-    const GPIO3_PIN25_ADRS: u32 = 1<<1;
+    // Configura o pino 25 como saída
+    p.GPIO.dir3.write(|w| w.pindir25().set_bit());
 
-    unsafe{
-        write_volatile(GPIO3_OUT, GPIO3_PIN25_ADRS);
-    }
-
-    const GPIO3_SET: *mut u32 = 0x2009_C07B as *mut u32;
-    const GPIO3_CLR: *mut u32 = 0x2009_C07F as *mut u32;
-    let mut is_on = false;
-    loop{
-        unsafe{
-            if  is_on{
-                write_volatile(GPIO3_CLR, GPIO3_PIN25_ADRS); 
-            }
-            else{
-                write_volatile(GPIO3_SET, GPIO3_PIN25_ADRS); 
-            }
-            for _ in 0..400_000{
-                nop();
-            }
-            is_on = !is_on;
-
-        }
-
+    loop {
+        p.GPIO.set3.write(|w| w.pinset25().set_bit());
+        asm::delay(200_000);
+        p.GPIO.clr3.write(|w| w.pinclr25().set_bit());
+        asm::delay(200_000);
     }
 
 }
